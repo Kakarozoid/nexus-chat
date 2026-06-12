@@ -1,0 +1,17 @@
+{
+  "name": "nexus-chat",
+  "version": "1.0.0",
+  "description": "NexusChat - A sophisticated glassmorphic OpenRouter chat client",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve .",
+    "start": "npx -y serve ."
+  },
+  "keywords": [
+    "openrouter",
+    "chat-ui",
+    "glassmorphism"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NexusChat — A refined glassmorphic interface for OpenRouter. Connect your API key, select from hundreds of AI models, and chat seamlessly.">
+  <meta name="theme-color" content="#ffffff">
+  <title>NexusChat · OpenRouter Client</title>
+  
+  <!-- Prism.js One Dark Theme for Code Blocks -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  
+  <!-- Base Style Sheets -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Deep Space Glowing Backdrop -->
+  <div class="backdrop-glow">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
+  <!-- Main App Shell -->
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar glass-panel" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <i data-lucide="zap" style="width: 18px; height: 18px;"></i>
+        </div>
+        <span class="logo-text">NexusChat</span>
+      </div>
+      
+      <div class="sidebar-scroll-area">
+        
+        <!-- API Key panel -->
+        <section class="api-key-panel glass-panel" id="api-config">
+          <div class="panel-label">
+            <i data-lucide="key-round" style="width: 14px; height: 14px;"></i>
+            OpenRouter API Key
+          </div>
+          <div class="api-input-wrapper">
+            <div class="api-input-container">
+              <input type="password" id="api-key-input" class="api-input" placeholder="sk-or-v1-...">
+              <button class="eye-btn" id="toggle-key-visibility" aria-label="Toggle API key visibility" type="button">
+                <i data-lucide="eye" id="eye-icon"></i>
+              </button>
+            </div>
+            <button class="btn-icon-only" id="verify-key-btn" title="Save & Verify Key" aria-label="Verify API Key" type="button">
+              <i data-lucide="check"></i>
+            </button>
+          </div>
+          <div class="key-status-card" id="key-status-details">
+            <div style="color: var(--text-muted); text-align: center; font-size: 0.75rem;">
+              No key configured. Enter key above to view balance.
+            </div>
+          </div>
+        </section>
+
+        <!-- Chat History -->
+        <section class="chat-history-section">
+          <div class="panel-label">
+            <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
+            Conversations
+          </div>
+          <button class="new-chat-btn" id="new-chat-trigger" type="button">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+            New Chat
+          </button>
+          <div class="chat-list-container" id="chat-list">
+            <!-- Dynamically populated chats -->
+          </div>
+        </section>
+        
+      </div>
+
+      <!-- Sidebar Footer -->
+      <footer class="sidebar-footer">
+        <button class="footer-btn" id="import-history-btn" title="Import conversations from JSON" type="button">
+          <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+          Import
+        </button>
+        <input type="file" id="import-history-file-input" style="display: none;" accept=".json">
+        <button class="footer-btn" id="export-history-btn" title="Export conversations to JSON" type="button">
+          <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+          Export
+        </button>
+        <button class="footer-btn" id="clear-history-btn" title="Clear all history" type="button">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+          Clear
+        </button>
+      </footer>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-window" id="main-chat-window">
+      
+      <!-- Chat Header -->
+      <header class="chat-header glass-panel">
+        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1;">
+          <button class="mobile-menu-btn" id="mobile-sidebar-toggle" aria-label="Toggle sidebar" type="button">
+            <i data-lucide="menu"></i>
+          </button>
+          
+          <!-- Model A block -->
+          <div class="chat-header-model-info" id="model-details-header" title="Click to change Model A">
+            <div class="active-model-dot"></div>
+            <div class="active-model-name-wrapper">
+              <span class="active-model-title" id="current-model-name">Gemini 2.5 Flash</span>
+              <span class="active-model-meta" id="current-model-meta">Google • 1.0M context</span>
+            </div>
+          </div>
+
+          <!-- Compare separator icon (visible in compare mode) -->
+          <div class="compare-divider" id="header-compare-divider" style="display: none; align-items: center; color: var(--text-secondary); margin: 0 4px;">
+            <i data-lucide="git-compare" style="width: 16px; height: 16px;"></i>
+          </div>
+
+          <!-- Model B block (visible in compare mode) -->
+          <div class="chat-header-model-info" id="compare-model-details-header" title="Click to change Model B" style="display: none;">
+            <div class="active-model-dot" style="background-color: hsl(var(--accent-pink)); box-shadow: 0 0 8px hsl(var(--accent-pink));"></div>
+            <div class="active-model-name-wrapper">
+              <span class="active-model-title" id="compare-model-name">Select Model B</span>
+              <span class="active-model-meta" id="compare-model-meta">Choose a model to compare</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <!-- Compare Mode Toggle Button -->
+          <button class="select-model-trigger-btn" id="toggle-compare-mode-btn" title="Toggle Side-by-Side Compare Mode" type="button" style="background: none; border-color: var(--glass-border);">
+            <i data-lucide="columns" style="width: 14px; height: 14px;"></i>
+            <span>Compare</span>
+          </button>
+          
+          <button class="select-model-trigger-btn" id="open-model-selector-btn" type="button">
+            <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+            Search Models
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Scrolling Area -->
+      <div class="messages-container" id="messages-scroll-box">
+        
+        <!-- Welcome Empty State -->
+        <div class="welcome-screen" id="chat-empty-state">
+          <div class="welcome-logo">
+            <i data-lucide="sparkles" style="width: 28px; height: 28px;"></i>
+          </div>
+          <h1 class="welcome-title">What can I help with?</h1>
+          <p class="welcome-subtitle">Connect to 300+ AI models through OpenRouter. Select a model, enter your API key, and start a conversation.</p>
+          
+          <div class="welcome-suggestions-grid">
+            <div class="suggestion-card glass-panel" data-prompt="Write a modern CSS glassmorphic button component with smooth hover transitions.">
+              <div class="suggestion-title">
+                <i data-lucide="palette" style="width: 14px; height: 14px; color: hsl(var(--accent-primary));"></i>
+                Design Systems
+              </div>
+              <div class="suggestion-desc">"Write a modern CSS glassmorphic button component..."</div>
+            </div>
+            <div class="suggestion-card glass-panel" data-prompt="Explain the transformer architecture in deep learning using a clear analogy.">
+              <div class="suggestion-title">
+                <i data-lucide="brain" style="width: 14px; height: 14px; color: hsl(var(--accent-purple));"></i>
+                Explain Concepts
+              </div>
+              <div class="suggestion-desc">"Explain the transformer architecture using a clear analogy..."</div>
+            </div>
+            <div class="suggestion-card glass-panel" data-prompt="Write a Python async function that batch-processes API requests with rate limiting using aiohttp.">
+              <div class="suggestion-title">
+                <i data-lucide="code" style="width: 14px; height: 14px; color: hsl(var(--accent-cyan));"></i>
+                Write Code
+              </div>
+              <div class="suggestion-desc">"Write a Python async function with rate limiting..."</div>
+            </div>
+            <div class="suggestion-card glass-panel" data-prompt="Help me brainstorm 5 creative product names for an AI-powered logistics platform.">
+              <div class="suggestion-title">
+                <i data-lucide="lightbulb" style="width: 14px; height: 14px; color: hsl(var(--accent-success));"></i>
+                Brainstorm Ideas
+              </div>
+              <div class="suggestion-desc">"Brainstorm 5 creative product names for an AI platform..."</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat messages will render here dynamically -->
+      </div>
+
+      <!-- Floating Scroll to Bottom Button -->
+      <button class="scroll-bottom-btn glass-panel" id="scroll-bottom-btn" title="Scroll to bottom" type="button">
+        <i data-lucide="arrow-down"></i>
+      </button>
+
+      <!-- Floating Bottom Input Area -->
+      <div class="chat-input-area">
+        <div class="input-container-capsule glass-panel">
+          
+          <!-- Parameters adjustment bar (hidden by default) -->
+          <div class="parameters-popover" id="params-popover">
+            <div class="parameters-grid">
+              <div class="parameter-item">
+                <div class="parameter-header">
+                  <span>Temperature</span>
+                  <span id="temp-val-display">0.7</span>
+                </div>
+                <input type="range" min="0" max="2" step="0.1" value="0.7" id="temp-slider" class="parameter-slider">
+              </div>
+              
+              <div class="parameter-item">
+                <div class="parameter-header">
+                  <span>Max Tokens</span>
+                  <span id="tokens-val-display">4096</span>
+                </div>
+                <input type="range" min="256" max="16384" step="256" value="4096" id="tokens-slider" class="parameter-slider">
+              </div>
+            </div>
+            
+            <div class="parameter-item" style="grid-column: span 2;">
+              <div class="parameter-header" style="margin-bottom: 4px;">
+                <span>System Prompt / Instructions</span>
+              </div>
+              <textarea id="system-prompt-input" class="system-prompt-textarea" placeholder="You are a helpful, precise AI assistant..."></textarea>
+              <div class="preset-buttons-container" id="preset-buttons-container">
+                <span class="preset-pill" data-preset="assistant">Default</span>
+                <span class="preset-pill" data-preset="writer">Writer</span>
+                <span class="preset-pill" data-preset="architect">Architect</span>
+                <span class="preset-pill" data-preset="debugger">Debugger</span>
+                <span class="preset-pill" data-preset="designer">UI Designer</span>
+                <span class="preset-pill" data-preset="socratic">Socratic</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Row: Textarea and Send button -->
+          <div class="input-row">
+            <button class="action-btn-circle" id="toggle-params-btn" title="Adjust Chat parameters (Temp, System Prompt)" type="button">
+              <i data-lucide="sliders"></i>
+            </button>
+            
+            <textarea id="chat-user-message-input" class="chat-textarea" placeholder="Type a message or paste a prompt..." rows="1"></textarea>
+            
+            <div class="input-actions">
+              <button class="send-message-btn" id="send-message-btn" title="Send Message" aria-label="Send Message" type="button" disabled>
+                <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </main>
+  </div>
+
+  <!-- Model Search and Selection Modal -->
+  <div class="modal-overlay" id="model-selector-modal">
+    <div class="modal-container glass-panel">
+      
+      <header class="modal-header">
+        <span class="modal-title">Model Library</span>
+        <button class="modal-close-btn" id="close-modal-btn" aria-label="Close modal" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </header>
+      
+      <div class="model-search-body">
+        <!-- Search Controls -->
+        <div class="search-controls-row">
+          <div class="search-bar-container">
+            <i data-lucide="search" class="search-icon-decor" style="width: 18px; height: 18px;"></i>
+            <input type="text" id="model-search-input" class="search-input-field" placeholder="Search models by name, provider, or capability..." autocomplete="off">
+          </div>
+          <select id="model-sort-select" class="sort-select">
+            <option value="popularity">Sort by Popularity</option>
+            <option value="name">Sort by Name (A-Z)</option>
+            <option value="price-asc">Sort by Price (Lowest First)</option>
+            <option value="context-desc">Sort by Context (Highest First)</option>
+          </select>
+        </div>
+        
+        <!-- Filter Tags -->
+        <div class="filter-tags-scroll" id="provider-tags-container">
+          <span class="filter-tag active" data-filter="all">All</span>
+          <span class="filter-tag" data-filter="free">Free Only</span>
+          <span class="filter-tag" data-filter="google">Google</span>
+          <span class="filter-tag" data-filter="anthropic">Anthropic</span>
+          <span class="filter-tag" data-filter="openai">OpenAI</span>
+          <span class="filter-tag" data-filter="meta">Meta Llama</span>
+          <span class="filter-tag" data-filter="deepseek">DeepSeek</span>
+          <span class="filter-tag" data-filter="mistral">Mistral</span>
+          <span class="filter-tag" data-filter="high-context">High Context (>100k)</span>
+        </div>
+        
+        <!-- Models Grid -->
+        <div class="models-grid-layout" id="models-list-grid">
+          <!-- Dynamically populated cards -->
+          <div style="grid-column: span 2; text-align: center; padding: 40px 0; color: var(--text-muted);">
+            <i data-lucide="loader" class="streaming-indicator" style="animation: spin 1.5s linear infinite; width: 24px; height: 24px; background: none; border-radius: 0;"></i>
+            <p style="margin-top: 10px;">Loading OpenRouter models...</p>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Live Code Sandbox Modal -->
+  <div class="modal-overlay" id="sandbox-modal">
+    <div class="modal-container glass-panel" style="max-width: 90%; height: 85vh;">
+      <header class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="play" style="color: hsl(var(--accent-green));"></i>
+          <span class="modal-title">Live Code Sandbox</span>
+        </div>
+        <button class="modal-close-btn" id="close-sandbox-btn" aria-label="Close sandbox" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </header>
+      <div class="sandbox-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #ffffff;">
+        <iframe id="sandbox-iframe" title="HTML Sandbox Preview" style="width: 100%; height: 100%; border: none;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toast-wrapper"></div>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Marked.js Markdown Parser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Prism.js Syntax Highlighter and language extensions CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+
+  <!-- Main JavaScript App Code -->
+  <script src="app.js"></script>
+</body>
+</html>
